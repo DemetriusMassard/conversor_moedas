@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 
 import 'home/homepage.dart';
@@ -12,6 +10,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(colorScheme: ColorScheme.dark(), useMaterial3: true),
       home: const HomePage(),
-    )
+    );
   }
 }
