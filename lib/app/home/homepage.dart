@@ -9,10 +9,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  double usdConversion = 0;
-  double eurConversion = 0;
-  double audConversion = 0;
-  double jpyConversion = 0;
+  double usdConversionRate = 0;
+  double eurConversionRate = 0;
+  double audConversionRate = 0;
+  double jpyConversionRate = 0;
+
+  TextEditingController brlController = TextEditingController();
+  TextEditingController usdController = TextEditingController();
+  TextEditingController eurController = TextEditingController();
+  TextEditingController audController = TextEditingController();
+  TextEditingController jpyController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,30 +35,54 @@ class _HomePageState extends State<HomePage> {
             case ConnectionState.waiting:
               return _buildLoadingScreen();
             default:
-              if (snapshot.hasError) {
+              if (snapshot.hasError ||
+                  snapshot.data == null ||
+                  snapshot.data == []) {
                 return _buildErrorScreen();
               } else {
-                usdConversion = snapshot.data['results']['currencies']['USD']['buy'];
-                eurConversion = snapshot.data['results']['currencies']['EUR']['buy'];
-                audConversion = snapshot.data['results']['currencies']['AUD']['buy'];
-                jpyConversion = snapshot.data['results']['currencies']['JPY']['buy'];
+                usdConversionRate = snapshot.data['currencies']['USD']['buy'];
+                eurConversionRate = snapshot.data['currencies']['EUR']['buy'];
+                audConversionRate = snapshot.data['currencies']['AUD']['buy'];
+                jpyConversionRate = snapshot.data['currencies']['JPY']['buy'];
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    spacing: 16,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Icon(
-                        Icons.monetization_on,
-                        size: 150,
-                        color: Colors.amber,
-                      ),
-                      _buildBRLInput(),
-                      _buildUSDInput(),
-                      _buildEURInput(),
-                      _buildAUDInput(),
-                      _buildJPYInput(),
-                    ],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      spacing: 16,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Icon(
+                          Icons.monetization_on,
+                          size: 150,
+                          color: Colors.amber,
+                        ),
+                        _buildCurrencyTextField(
+                          "Real (BRL)",
+                          "R\$ ",
+                          brlController,
+                        ),
+                        _buildCurrencyTextField(
+                          "Dólar (USD)",
+                          "US\$ ",
+                          usdController,
+                        ),
+                        _buildCurrencyTextField(
+                          "Euro (EUR)",
+                          "€ ",
+                          eurController,
+                        ),
+                        _buildCurrencyTextField(
+                          "Dólar Australiano (AUD)",
+                          "AU\$ ",
+                          audController,
+                        ),
+                        _buildCurrencyTextField(
+                          "Yen (JPY)",
+                          "¥ ",
+                          jpyController,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
@@ -82,86 +112,68 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBRLInput() {
-    return TextField(
+  Widget _buildCurrencyTextField(
+    String label,
+    String prefix,
+    TextEditingController controller,
+  ) {
+    return TextFormField(
+      onChanged: (context) {
+        _inputChanged(controller);
+      },
+      validator: (context) {
+        return null;
+      },
+      controller: controller,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        prefix: Text("R\$ ", style: TextStyle(color: Colors.amber)),
-        label: Text("Reais (BRL)", style: TextStyle(color: Colors.amber)),
+        prefix: Text(prefix, style: TextStyle(color: Colors.amber)),
+        label: Text(label, style: TextStyle(color: Colors.amber)),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.amber),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
+          borderSide: BorderSide(color: Colors.white),
         ),
       ),
     );
   }
 
-  Widget _buildUSDInput() {
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        prefix: Text("\$ ", style: TextStyle(color: Colors.amber)),
-        label: Text("Dólares (USD)", style: TextStyle(color: Colors.amber)),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-      ),
-    );
-  }
+  void _inputChanged(TextEditingController c) {
+    double? convertedValue;
+    //Convert the input value to BRL
 
-  Widget _buildEURInput() {
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        prefix: Text("€ ", style: TextStyle(color: Colors.amber)),
-        label: Text("Euro (EUR)", style: TextStyle(color: Colors.amber)),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-      ),
-    );
-  }
+    if (c == brlController) {
+      convertedValue = double.parse(c.text);
+    } else if (c == usdController) {
+      convertedValue = double.parse(c.text) * usdConversionRate;
+    } else if (c == eurController) {
+      convertedValue = double.parse(c.text) * eurConversionRate;
+    } else if (c == audController) {
+      convertedValue = double.parse(c.text) * audConversionRate;
+    } else if (c == jpyController) {
+      convertedValue = double.parse(c.text) * jpyConversionRate;
+    }
 
-  Widget _buildJPYInput() {
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        prefix: Text("¥ ", style: TextStyle(color: Colors.amber)),
-        label: Text("Yen (JPY)", style: TextStyle(color: Colors.amber)),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAUDInput() {
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        prefix: Text("AU\$ ", style: TextStyle(color: Colors.amber)),
-        label: Text(
-          "Dólares Australianos (AUD)",
-          style: TextStyle(color: Colors.amber),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.amber),
-        ),
-      ),
-    );
+    //Change the text of the unfocused inputs, according to the conversion rate
+    if (c != brlController) {
+      brlController.text = convertedValue!.toStringAsFixed(2);
+    }
+    if (c != usdController) {
+      usdController.text = (convertedValue! / usdConversionRate)
+          .toStringAsFixed(2);
+    }
+    if (c != eurController) {
+      eurController.text = (convertedValue! / eurConversionRate)
+          .toStringAsFixed(2);
+    }
+    if (c != audController) {
+      audController.text = (convertedValue! / audConversionRate)
+          .toStringAsFixed(2);
+    }
+    if (c != jpyController) {
+      jpyController.text = (convertedValue! / jpyConversionRate)
+          .toStringAsFixed(2);
+    }
   }
 }
