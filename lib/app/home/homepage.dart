@@ -9,10 +9,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Future<Map> conversionData = getConversionData();
+
   double usdConversionRate = 0;
   double eurConversionRate = 0;
   double audConversionRate = 0;
   double jpyConversionRate = 0;
+
+  int teste = 0;
 
   TextEditingController brlController = TextEditingController();
   TextEditingController usdController = TextEditingController();
@@ -28,7 +32,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.amber,
       ),
       body: FutureBuilder<Map>(
-        future: getConversionData(),
+        future: conversionData,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -117,16 +121,16 @@ class _HomePageState extends State<HomePage> {
     String prefix,
     TextEditingController controller,
   ) {
-    return TextFormField(
+    String? _errorText;
+    return TextField(
       onChanged: (context) {
         _inputChanged(controller);
-      },
-      validator: (context) {
-        return null;
+        setState(() {});
       },
       controller: controller,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
+        errorText: validateNumericFields(controller.text),
         prefix: Text(prefix, style: TextStyle(color: Colors.amber)),
         label: Text(label, style: TextStyle(color: Colors.amber)),
         enabledBorder: OutlineInputBorder(
@@ -135,45 +139,77 @@ class _HomePageState extends State<HomePage> {
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.white),
         ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.pink),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.pink),
+        ),
       ),
     );
   }
 
   void _inputChanged(TextEditingController c) {
     double? convertedValue;
-    //Convert the input value to BRL
 
-    if (c == brlController) {
-      convertedValue = double.parse(c.text);
-    } else if (c == usdController) {
-      convertedValue = double.parse(c.text) * usdConversionRate;
+    //Convert the input value to BRL
+    convertedValue = parseTextToDouble(c.text);
+    if (convertedValue == null) {
+      return;
+    }
+
+    if (c == usdController) {
+      convertedValue = convertedValue * usdConversionRate;
     } else if (c == eurController) {
-      convertedValue = double.parse(c.text) * eurConversionRate;
+      convertedValue = convertedValue * eurConversionRate;
     } else if (c == audController) {
-      convertedValue = double.parse(c.text) * audConversionRate;
+      convertedValue = convertedValue * audConversionRate;
     } else if (c == jpyController) {
-      convertedValue = double.parse(c.text) * jpyConversionRate;
+      convertedValue = convertedValue * jpyConversionRate;
     }
 
     //Change the text of the unfocused inputs, according to the conversion rate
     if (c != brlController) {
-      brlController.text = convertedValue!.toStringAsFixed(2);
+      brlController.text = convertedValue.toStringAsFixed(2);
     }
     if (c != usdController) {
-      usdController.text = (convertedValue! / usdConversionRate)
-          .toStringAsFixed(2);
+      usdController.text = (convertedValue / usdConversionRate).toStringAsFixed(
+        2,
+      );
     }
     if (c != eurController) {
-      eurController.text = (convertedValue! / eurConversionRate)
-          .toStringAsFixed(2);
+      eurController.text = (convertedValue / eurConversionRate).toStringAsFixed(
+        2,
+      );
     }
     if (c != audController) {
-      audController.text = (convertedValue! / audConversionRate)
-          .toStringAsFixed(2);
+      audController.text = (convertedValue / audConversionRate).toStringAsFixed(
+        2,
+      );
     }
     if (c != jpyController) {
-      jpyController.text = (convertedValue! / jpyConversionRate)
-          .toStringAsFixed(2);
+      jpyController.text = (convertedValue / jpyConversionRate).toStringAsFixed(
+        2,
+      );
     }
+  }
+
+  String? validateNumericFields(String? value) {
+    //Validator function
+    if (value == null || value == "") {
+      return null;
+    }
+    double? numericValue = parseTextToDouble(value);
+    if (numericValue == null || numericValue.isNaN) {
+      return "O valor deve ser numérico";
+    } else {
+      return null;
+    }
+  }
+
+  double? parseTextToDouble(String? text) {
+    //Parse function, so the user can use ',' an '.' as decimal separator
+    double? parsedDouble = double.tryParse(text!.replaceAll(",", "."));
+    return parsedDouble;
   }
 }
