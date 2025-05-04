@@ -28,7 +28,10 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("\$ Conversor \$", style: TextStyle(color: Colors.black)),
+        title: Text(
+          "Conversor de moedas",
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.amber,
       ),
       body: FutureBuilder<Map>(
@@ -121,7 +124,6 @@ class _HomePageState extends State<HomePage> {
     String prefix,
     TextEditingController controller,
   ) {
-    String? _errorText;
     return TextField(
       onChanged: (context) {
         _inputChanged(controller);
